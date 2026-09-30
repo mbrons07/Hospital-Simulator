@@ -6,9 +6,10 @@ using UnityEngine.Networking;
 public class NetworkManager : MonoBehaviour
 {
     private string baseUrl = "http://localhost:3000/api";
+    public int currentUserId = -1; // Stores logged-in player ID
 
     [System.Serializable]
-    public class LoginData
+    public class AuthData
     {
         public string username;
         public string password;
@@ -23,59 +24,54 @@ public class NetworkManager : MonoBehaviour
         public int completionTime;
     }
 
-    // Call this method from your Login UI Button
-    public void Login(string username, string password)
+    public void RegisterUser(string username, string password, System.Action<string> onResponse)
     {
-        StartCoroutine(SendLoginRequest(username, password));
+        StartCoroutine(PostRequest("/register", JsonUtility.ToJson(new AuthData { username = username, password = password }), onResponse));
     }
 
-    // Call this method when a hospital game session finishes
-    public void SaveResult(int playerId, int score, int patientsTreated, int completionTime)
+    public void LoginUser(string username, string password, System.Action<string> onResponse)
     {
-        StartCoroutine(SendResultRequest(playerId, score, patientsTreated, completionTime));
+        StartCoroutine(PostRequest("/login", JsonUtility.ToJson(new AuthData { username = username, password = password }), (response) => {
+            // Simple parsing to grab playerId from response
+            if (response.Contains("playerId"))
+            {
+                string[] parts = response.Split(',');
+                foreach (var part in parts)
+                {
+                    if (part.Contains("playerId"))
+                    {
+                        int.TryParse(part.Split(':')[1].Replace("}", "").Trim(), out currentUserId);
+                    }
+                }
+            }
+            onResponse?.Invoke(response);
+        }));
     }
 
-    private IEnumerator SendLoginRequest(string username, string password)
+    public void SaveGameResult(int score, int patients, int timeInSeconds, System.Action<string> onResponse)
     {
-        string url = baseUrl + "/login";
-        LoginData data = new LoginData { username = username, password = password };
-        string json = JsonUtility.ToJson(data);
-
-        using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+        if (currentUserId == -1)
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
-            www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-            www.downloadHandler = new DownloadHandlerBuffer();
-            www.SetRequestHeader("Content-Type", "application/json");
-
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                Debug.Log("Response: " + www.downloadHandler.text);
-            }
-            else
-            {
-                Debug.LogError("Error: " + www.error);
-            }
+            onResponse?.Invoke("Error: Must log in first!");
+            return;
         }
+
+        ResultData data = new ResultData
+        {
+            playerId = currentUserId,
+            score = score,
+            patientsTreated = patients,
+            completionTime = timeInSeconds
+        };
+
+        StartCoroutine(PostRequest("/results", JsonUtility.ToJson(data), onResponse));
     }
 
-    private IEnumerator SendResultRequest(int playerId, int score, int patientsTreated, int completionTime)
+    private IEnumerator PostRequest(string endpoint, string jsonBody, System.Action<string> callback)
     {
-        string url = baseUrl + "/results";
-        ResultData data = new ResultData 
-        { 
-            playerId = playerId, 
-            score = score, 
-            patientsTreated = patientsTreated, 
-            completionTime = completionTime 
-        };
-        string json = JsonUtility.ToJson(data);
-
-        using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+        using (UnityWebRequest www = new UnityWebRequest(baseUrl + endpoint, "POST"))
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(json);
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
             www.uploadHandler = new UploadHandlerRaw(bodyRaw);
             www.downloadHandler = new DownloadHandlerBuffer();
             www.SetRequestHeader("Content-Type", "application/json");
@@ -84,11 +80,11 @@ public class NetworkManager : MonoBehaviour
 
             if (www.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log("Result Saved: " + www.downloadHandler.text);
+                callback?.Invoke(www.downloadHandler.text);
             }
             else
             {
-                Debug.LogError("Error saving result: " + www.error);
+                callback?.Invoke("Error: " + www.downloadHandler.text);
             }
         }
     }
