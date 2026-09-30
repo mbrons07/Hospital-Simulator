@@ -8,6 +8,8 @@ public class ui : MonoBehaviour
     public TextMeshProUGUI patientText; 
     public int patientsTreatedCount = 0;
 
+    public int FakePatientCount = 0; 
+
     void Start()
     {
         UpdateUI();
@@ -25,6 +27,12 @@ public class ui : MonoBehaviour
         patientsTreatedCount++;
         UpdateUI();
     }
+
+    public void OnFakePatient()
+    {
+        FakePatientCount++;
+        UpdateUI();
+    }
     public void OnMouseDown()
     {
         OnTreatPatient();
@@ -32,6 +40,6 @@ public class ui : MonoBehaviour
 
     private void UpdateUI()
     {
-        patientText.text = "patients treated: " + patientsTreatedCount;
+        patientText.text = "patients treated: " + patientsTreatedCount + " | fake patients: " + FakePatientCount;
     }
 }
