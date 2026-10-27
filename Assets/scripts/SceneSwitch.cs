@@ -5,6 +5,6 @@ public class SceneSwitch : MonoBehaviour
 {
     public void SwitchScene()
     {
-        SceneManager.LoadScene("Hospital");
+        SceneManager.LoadScene("RealHospital");
     }
 }

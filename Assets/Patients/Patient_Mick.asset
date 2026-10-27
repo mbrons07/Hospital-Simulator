@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PatientData
   patientName: Mick
   description: I accidentely took a too high dose of adhd medication
+  medicalHistory: came in for overdosis 3 moths ago
   correctCategory: 2

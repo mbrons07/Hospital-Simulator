@@ -14,4 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PatientData
   patientName: Sheath
   description: my tummy hurt
+  medicalHistory: hoi
   correctCategory: 2

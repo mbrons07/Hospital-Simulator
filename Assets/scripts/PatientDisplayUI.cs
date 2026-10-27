@@ -7,6 +7,11 @@ public class PatientDisplayUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text descriptionText;
+    [SerializeField] private TMP_Text medicalHistoryText;
+
+    [Header("Scene Settings")]
+    [SerializeField] private string mainMenuSceneName = "MainMenu";
+    [SerializeField] private float delayBeforeReturn = 5f;
 
     public void DisplayPatient(PatientData patient)
     {
@@ -14,6 +19,11 @@ public class PatientDisplayUI : MonoBehaviour
 
         nameText.text = patient.PatientName;
         descriptionText.text = $"\"{patient.Description}\"";
+
+        if (medicalHistoryText != null)
+        {
+            medicalHistoryText.text = $"{patient.MedicalHistory}";
+        }
     }
 
     public void DisplayEndMessage(int finalScore, int totalPatients)
@@ -21,14 +31,17 @@ public class PatientDisplayUI : MonoBehaviour
         nameText.text = "Finished";
         descriptionText.text = $"All patients have been triaged.\n\nYour Final Score: {finalScore} / {totalPatients} correct";
 
-        // Start the 5-second countdown timer
-        StartCoroutine(ReturnToMainMenuAfterDelay(5f));
+        if (medicalHistoryText != null)
+        {
+            medicalHistoryText.text = "";
+        }
+
+        StartCoroutine(ReturnToMainMenuAfterDelay(delayBeforeReturn));
     }
 
     private IEnumerator ReturnToMainMenuAfterDelay(float delay)
     {
-        yield return new WaitForSeconds(3f);
-
-        SceneManager.LoadScene("Main Menu");
+        yield return new WaitForSeconds(delay);
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 }
