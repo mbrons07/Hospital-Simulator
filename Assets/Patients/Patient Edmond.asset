@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PatientData
   patientName: Edmond
   description: my hand bone got cut and its bleeding heavily
-  medicalHistory: test
+  medicalHistory: 'came in for cutting himself
+
+    2 weeks ago works at a butcher'
   correctCategory: 0
